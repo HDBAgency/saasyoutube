@@ -1,0 +1,80 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #ffffff;
+  --surface: #f8fafc;
+  --border: #e2e8f0;
+}
+
+body {
+  background-color: var(--bg);
+  color: #0f172a;
+}
+
+@keyframes float-bounce {
+  0%   { transform: translateY(0px); }
+  50%  { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+@keyframes lock-shake {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  15%       { transform: rotate(-15deg) scale(1.2); }
+  30%       { transform: rotate(12deg) scale(1.2); }
+  45%       { transform: rotate(-8deg) scale(1.1); }
+  60%       { transform: rotate(6deg) scale(1.1); }
+  75%       { transform: rotate(-3deg) scale(1.05); }
+  90%       { transform: rotate(2deg) scale(1.05); }
+}
+
+@keyframes premium-pulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,255,255,0.6); }
+  50%       { transform: scale(1.04); box-shadow: 0 0 16px 6px rgba(255,255,255,0.3); }
+}
+
+@keyframes mirror-shine {
+  0%   { background-position: -100% center; }
+  100% { background-position: 100% center; }
+}
+
+@layer utilities {
+  .mirror-btn {
+    background: linear-gradient(
+      90deg,
+      #0369a1 0%,
+      #0ea5e9 40%,
+      #7dd3fc 50%,
+      #0ea5e9 60%,
+      #0369a1 100%
+    );
+    background-size: 300% auto;
+    animation: mirror-shine 4s linear infinite, float-bounce 3s ease-in-out infinite;
+  }
+  .mirror-text {
+    background: linear-gradient(
+      90deg,
+      #0ea5e9 0%,
+      #818cf8 40%,
+      #c7d8f5 50%,
+      #818cf8 60%,
+      #0ea5e9 100%
+    );
+    background-size: 300% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: mirror-shine 4s linear infinite;
+  }
+  .gradient-text {
+    background: linear-gradient(135deg, #38bdf8, #818cf8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .glass {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(12px);
+  }
+}

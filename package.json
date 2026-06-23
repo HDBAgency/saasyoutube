@@ -1,0 +1,19 @@
+{
+  "name": "saasyoutube",
+  "private": true,
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "dev": "concurrently \"npm run dev -w apps/web\" \"npm run dev -w apps/worker\"",
+    "build": "npm run build -w packages/shared && npm run db:generate -w packages/db && npm run build -w apps/web",
+    "db:generate": "npm run db:generate -w packages/db",
+    "db:push": "npm run db:push -w packages/db",
+    "db:migrate": "npm run db:migrate -w packages/db",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "typescript": "^5.3.3"
+  }
+}

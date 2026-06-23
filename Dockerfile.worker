@@ -1,0 +1,22 @@
+FROM node:20-alpine
+
+RUN apk add --no-cache python3 py3-pip ffmpeg
+RUN pip install yt-dlp --break-system-packages
+
+WORKDIR /app
+
+COPY package*.json ./
+COPY apps/web/package*.json apps/web/
+COPY apps/worker/package*.json apps/worker/
+COPY packages/db/package*.json packages/db/
+
+RUN npm ci
+
+COPY . .
+
+RUN npx prisma generate --schema=packages/db/prisma/schema.prisma
+RUN npm run build --workspace=apps/worker
+
+RUN mkdir -p /tmp/downloads
+
+CMD ["npm", "run", "start", "--workspace=apps/worker"]

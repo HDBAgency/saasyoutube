@@ -1,0 +1,46 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                   String    @id @default(cuid())
+  email                String    @unique
+  stripeCustomerId     String?   @unique
+  stripeSubscriptionId String?   @unique
+  passwordHash         String?
+  plan                 String    @default("pending")
+  subscriptionStatus   String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+}
+
+model Job {
+  id        String     @id @default(cuid())
+  url       String
+  title     String?
+  platform  String
+  format    String
+  status    String     @default("pending")
+  progress  Int        @default(0)
+  filePath  String?
+  token     String?    @unique
+  errorMsg  String?
+  ipAddress String?
+  userEmail String?
+  createdAt DateTime   @default(now())
+  expiresAt DateTime?
+  downloads Download[]
+}
+
+model Download {
+  id        String   @id @default(cuid())
+  jobId     String
+  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  ipAddress String?
+  createdAt DateTime @default(now())
+}
