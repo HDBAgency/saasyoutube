@@ -68,7 +68,7 @@ async function processConversion(job: Job) {
   if (process.env.YOUTUBE_COOKIES) {
     const { writeFile } = await import('fs/promises');
     const cookiePath = '/tmp/yt-cookies.txt';
-    await writeFile(cookiePath, process.env.YOUTUBE_COOKIES, 'utf8');
+    await writeFile(cookiePath, process.env.YOUTUBE_COOKIES.replace(/\r\n/g, '\n'), 'utf8');
     cookiesArgs.push('--cookies', cookiePath);
   }
   const ytdlpArgs = [

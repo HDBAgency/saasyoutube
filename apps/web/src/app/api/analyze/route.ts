@@ -14,7 +14,7 @@ async function getCookiesArg(): Promise<string> {
   if (!cookies) return '';
   const { writeFile } = await import('fs/promises');
   const path = '/tmp/yt-cookies.txt';
-  await writeFile(path, cookies, 'utf8');
+  await writeFile(path, cookies.replace(/\r\n/g, '\n'), 'utf8');
   return `--cookies ${path}`;
 }
 
