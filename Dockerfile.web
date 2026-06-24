@@ -16,6 +16,8 @@ COPY . .
 
 RUN npx prisma generate --schema=packages/db/prisma/schema.prisma
 
+RUN find /app/node_modules -name "libquery_engine-linux-musl.so.node" -delete || true
+
 RUN npm run build --workspace=apps/web
 
 EXPOSE 3000
