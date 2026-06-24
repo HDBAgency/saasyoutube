@@ -67,6 +67,16 @@ async function processConversion(job: Job) {
 
   const outputTemplate = path.join(jobDir, 'output.%(ext)s');
   const isYoutube = /youtu\.?be/.test(url);
+
+  const cookiesArgs: string[] = [];
+  if (isYoutube && process.env.YOUTUBE_COOKIES_B64) {
+    const { writeFile } = await import('fs/promises');
+    const cookiePath = '/tmp/yt-cookies.txt';
+    const cookies = Buffer.from(process.env.YOUTUBE_COOKIES_B64, 'base64').toString('utf8');
+    await writeFile(cookiePath, cookies, 'utf8');
+    cookiesArgs.push('--cookies', cookiePath);
+  }
+
   const extractorArgs: string[] = isYoutube
     ? ['--extractor-args', 'youtube:player_client=tv_embedded,ios,android']
     : [];
@@ -74,6 +84,7 @@ async function processConversion(job: Job) {
   const ytdlpArgs = [
     '--no-playlist',
     '--no-warnings',
+    ...cookiesArgs,
     ...extractorArgs,
     '--ffmpeg-location', 'ffmpeg',
     '-o', outputTemplate,
