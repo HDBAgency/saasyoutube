@@ -10,12 +10,13 @@ const execAsync = promisify(exec);
 const YTDLP = process.platform === 'win32' ? 'python -m yt_dlp' : 'yt-dlp';
 
 async function getCookiesArg(): Promise<string> {
-  const cookies = process.env.YOUTUBE_COOKIES;
-  if (!cookies) return '';
+  const b64 = process.env.YOUTUBE_COOKIES_B64;
+  if (!b64) return '';
   const { writeFile } = await import('fs/promises');
-  const path = '/tmp/yt-cookies.txt';
-  await writeFile(path, cookies.replace(/\r\n/g, '\n'), 'utf8');
-  return `--cookies ${path}`;
+  const cookies = Buffer.from(b64, 'base64').toString('utf8');
+  const cookiePath = '/tmp/yt-cookies.txt';
+  await writeFile(cookiePath, cookies, 'utf8');
+  return `--cookies ${cookiePath}`;
 }
 
 export async function POST(req: NextRequest) {
