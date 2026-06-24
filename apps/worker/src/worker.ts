@@ -1,6 +1,5 @@
 import 'dotenv/config';
 import { Worker, type Job } from 'bullmq';
-import IORedis from 'ioredis';
 import { execFile, exec } from 'child_process';
 import { promisify } from 'util';
 import { mkdir, rm, readdir } from 'fs/promises';
@@ -13,6 +12,22 @@ const execAsync = promisify(exec);
 const YTDLP = process.platform === 'win32' ? 'python -m yt_dlp' : 'yt-dlp';
 
 const REDIS_URL = process.env.REDIS_URL ?? 'redis://localhost:6379';
+
+function parseRedisUrl(url: string) {
+  try {
+    const u = new URL(url);
+    return {
+      host: u.hostname || 'localhost',
+      port: parseInt(u.port || '6379'),
+      password: u.password || undefined,
+      username: u.username || undefined,
+      tls: u.protocol === 'rediss:' ? {} : undefined,
+      maxRetriesPerRequest: null as null,
+    };
+  } catch {
+    return { host: 'localhost', port: 6379, maxRetriesPerRequest: null as null };
+  }
+}
 const TMP_DIR = process.env.TMP_DIR ?? (process.platform === 'win32' ? 'C:\\temp\\downloads' : '/tmp/downloads');
 const JWT_SECRET = process.env.JWT_SECRET ?? 'fallback_secret_change_me';
 const MAX_DURATION = parseInt(process.env.MAX_VIDEO_DURATION_SECONDS ?? '3600');
@@ -100,7 +115,7 @@ async function processConversion(job: Job) {
   }, EXPIRY_MINUTES * 60_000);
 }
 
-const connection = new IORedis(REDIS_URL, { maxRetriesPerRequest: null });
+const connection = parseRedisUrl(REDIS_URL);
 
 const worker = new Worker(
   'conversions',
