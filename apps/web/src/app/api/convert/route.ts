@@ -68,18 +68,23 @@ export async function POST(req: NextRequest) {
 
   const platform = detectPlatform(url);
 
-  const job = await prisma.job.create({
-    data: {
-      url,
-      title: title ?? null,
-      platform,
-      format,
-      ipAddress: ip,
-      userEmail: session?.email ?? null,
-    },
-  });
+  try {
+    const job = await prisma.job.create({
+      data: {
+        url,
+        title: title ?? null,
+        platform,
+        format,
+        ipAddress: ip,
+        userEmail: session?.email ?? null,
+      },
+    });
 
-  await addConversionJob({ jobId: job.id, url, format, title: job.title ?? '' });
+    await addConversionJob({ jobId: job.id, url, format, title: job.title ?? '' });
 
-  return NextResponse.json({ jobId: job.id });
+    return NextResponse.json({ jobId: job.id });
+  } catch (err) {
+    console.error('[convert] Erreur:', err);
+    return NextResponse.json({ error: 'Erreur serveur interne.' }, { status: 500 });
+  }
 }
