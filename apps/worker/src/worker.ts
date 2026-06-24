@@ -5,7 +5,9 @@ process.on('uncaughtException', (err) => { console.error('[worker] CRASH uncaugh
 process.on('unhandledRejection', (reason) => { console.error('[worker] CRASH unhandledRejection:', reason); process.exit(1); });
 import { execFile, exec } from 'child_process';
 import { promisify } from 'util';
-import { mkdir, rm, readdir } from 'fs/promises';
+import { mkdir, rm, readdir, stat } from 'fs/promises';
+import { createReadStream, existsSync } from 'fs';
+import http from 'http';
 import path from 'path';
 import jwt from 'jsonwebtoken';
 import { prisma } from '@saasyoutube/db';
@@ -144,5 +146,27 @@ const worker = new Worker(
 
 worker.on('completed', (job) => console.log(`[worker] Job ${job.id} terminé.`));
 worker.on('failed', (job, err) => console.error(`[worker] Job ${job?.id} échoué:`, err.message));
+
+// Serveur HTTP interne pour servir les fichiers au service web
+const FILE_SERVER_PORT = parseInt(process.env.FILE_SERVER_PORT ?? '3001');
+const fileServer = http.createServer(async (req, res) => {
+  const jobId = req.url?.replace('/download/', '').replace('/', '');
+  if (!jobId) { res.writeHead(404); res.end('Not found'); return; }
+  try {
+    const job = await prisma.job.findUnique({ where: { id: jobId } });
+    if (!job?.filePath || !existsSync(job.filePath)) {
+      res.writeHead(410); res.end('Expired'); return;
+    }
+    const fileStat = await stat(job.filePath);
+    const fileName = path.basename(job.filePath);
+    res.writeHead(200, {
+      'Content-Disposition': `attachment; filename*=UTF-8''${encodeURIComponent(fileName)}`,
+      'Content-Type': 'application/octet-stream',
+      'Content-Length': String(fileStat.size),
+    });
+    createReadStream(job.filePath).pipe(res);
+  } catch { res.writeHead(500); res.end('Error'); }
+});
+fileServer.listen(FILE_SERVER_PORT, () => console.log(`[worker] File server :${FILE_SERVER_PORT}`));
 
 console.log('[worker] v2 Démarré — en attente de jobs...');

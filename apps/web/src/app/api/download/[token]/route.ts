@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@saasyoutube/db';
 import { verifyDownloadToken } from '@/lib/jwt';
-import { createReadStream, existsSync } from 'fs';
-import { stat } from 'fs/promises';
-import path from 'path';
+
+const WORKER_HOST = process.env.WORKER_INTERNAL_HOST ?? 'worker.railway.internal';
+const WORKER_PORT = process.env.FILE_SERVER_PORT ?? '3001';
 
 export async function GET(
   req: NextRequest,
@@ -15,18 +15,11 @@ export async function GET(
   }
 
   const job = await prisma.job.findUnique({ where: { id: payload.jobId } });
-  if (!job || job.status !== 'done' || !job.filePath) {
+  if (!job || job.status !== 'done') {
     return NextResponse.json({ error: 'Fichier introuvable.' }, { status: 404 });
   }
 
-  if (!existsSync(job.filePath)) {
-    return NextResponse.json({ error: 'Le fichier a expiré.' }, { status: 410 });
-  }
-
   try {
-    const fileStat = await stat(job.filePath);
-    const fileName = path.basename(job.filePath);
-
     await prisma.download.create({
       data: {
         jobId: job.id,
@@ -34,16 +27,21 @@ export async function GET(
       },
     });
 
-    const stream = createReadStream(job.filePath);
+    const workerUrl = `http://${WORKER_HOST}:${WORKER_PORT}/download/${job.id}`;
+    const workerRes = await fetch(workerUrl);
 
-    return new NextResponse(stream as unknown as ReadableStream, {
-      headers: {
-        'Content-Disposition': `attachment; filename*=UTF-8''${encodeURIComponent(fileName)}`,
-        'Content-Type': 'application/octet-stream',
-        'Content-Length': String(fileStat.size),
-        'Cache-Control': 'no-store',
-      },
-    });
+    if (!workerRes.ok) {
+      return NextResponse.json({ error: 'Le fichier a expiré.' }, { status: 410 });
+    }
+
+    const headers = new Headers();
+    headers.set('Content-Disposition', workerRes.headers.get('Content-Disposition') ?? 'attachment');
+    headers.set('Content-Type', 'application/octet-stream');
+    headers.set('Cache-Control', 'no-store');
+    const cl = workerRes.headers.get('Content-Length');
+    if (cl) headers.set('Content-Length', cl);
+
+    return new NextResponse(workerRes.body, { headers });
   } catch (err) {
     console.error('[download]', err);
     return NextResponse.json({ error: 'Erreur lors du téléchargement.' }, { status: 500 });
