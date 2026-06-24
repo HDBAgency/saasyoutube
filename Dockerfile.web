@@ -1,6 +1,8 @@
 FROM node:20-alpine
 
 RUN apk add --no-cache openssl curl
+RUN ln -s /usr/lib/libssl.so.3 /usr/lib/libssl.so.1.1 && \
+    ln -s /usr/lib/libcrypto.so.3 /usr/lib/libcrypto.so.1.1
 RUN curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp && chmod +x /usr/local/bin/yt-dlp
 
 WORKDIR /app
@@ -15,9 +17,6 @@ RUN npm ci
 COPY . .
 
 RUN npx prisma generate --schema=packages/db/prisma/schema.prisma
-
-RUN cp /app/node_modules/.prisma/client/libquery_engine-linux-musl-openssl-3.0.x.so.node \
-       /app/node_modules/.prisma/client/libquery_engine-linux-musl.so.node
 
 RUN npm run build --workspace=apps/web
 
