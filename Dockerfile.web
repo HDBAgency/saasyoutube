@@ -13,7 +13,7 @@ RUN npm ci
 
 COPY . .
 
-RUN node -e "const fs=require('fs');let s=fs.readFileSync('packages/db/prisma/schema.prisma','utf8');s=s.replace('\"native\", \"debian-openssl-3.0.x\"','\"native\", \"linux-musl-openssl-3.0.x\", \"debian-openssl-3.0.x\"');fs.writeFileSync('packages/db/prisma/schema.prisma',s);"
+RUN node -e "const fs=require('fs');let s=fs.readFileSync('packages/db/prisma/schema.prisma','utf8');s=s.replace('provider = \"prisma-client-js\"','provider = \"prisma-client-js\"\n  binaryTargets = [\"native\", \"linux-musl-openssl-3.0.x\"]');fs.writeFileSync('packages/db/prisma/schema.prisma',s);"
 
 RUN npx prisma generate --schema=packages/db/prisma/schema.prisma
 
