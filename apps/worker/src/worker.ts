@@ -74,6 +74,7 @@ async function processConversion(job: Job) {
   const ytdlpArgs = [
     '--no-playlist',
     '--no-warnings',
+    '--extractor-args', 'youtube:player_client=tv_embedded',
     ...cookiesArgs,
     '--match-filter', `duration <= ${MAX_DURATION}`,
     '--ffmpeg-location', 'ffmpeg',
