@@ -9,6 +9,15 @@ const execAsync = promisify(exec);
 
 const YTDLP = process.platform === 'win32' ? 'python -m yt_dlp' : 'yt-dlp';
 
+async function getCookiesArg(): Promise<string> {
+  const cookies = process.env.YOUTUBE_COOKIES;
+  if (!cookies) return '';
+  const { writeFile } = await import('fs/promises');
+  const path = '/tmp/yt-cookies.txt';
+  await writeFile(path, cookies, 'utf8');
+  return `--cookies ${path}`;
+}
+
 export async function POST(req: NextRequest) {
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
 
@@ -30,8 +39,9 @@ export async function POST(req: NextRequest) {
   const platform = detectPlatform(url);
 
   try {
+    const cookiesArg = await getCookiesArg();
     const { stdout } = await execAsync(
-      `${YTDLP} --dump-json --no-playlist --no-warnings --extractor-args "youtube:player_client=android,web" "${url}"`,
+      `${YTDLP} --dump-json --no-playlist --no-warnings ${cookiesArg} "${url}"`,
       { timeout: 30_000 },
     );
 

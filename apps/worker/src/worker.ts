@@ -64,10 +64,17 @@ async function processConversion(job: Job) {
   await job.updateProgress(10);
 
   const outputTemplate = path.join(jobDir, 'output.%(ext)s');
+  const cookiesArgs: string[] = [];
+  if (process.env.YOUTUBE_COOKIES) {
+    const { writeFile } = await import('fs/promises');
+    const cookiePath = '/tmp/yt-cookies.txt';
+    await writeFile(cookiePath, process.env.YOUTUBE_COOKIES, 'utf8');
+    cookiesArgs.push('--cookies', cookiePath);
+  }
   const ytdlpArgs = [
     '--no-playlist',
     '--no-warnings',
-    '--extractor-args', 'youtube:player_client=android,web',
+    ...cookiesArgs,
     '--match-filter', `duration <= ${MAX_DURATION}`,
     '--ffmpeg-location', 'ffmpeg',
     '-o', outputTemplate,
