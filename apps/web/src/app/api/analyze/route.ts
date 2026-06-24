@@ -7,8 +7,7 @@ import type { OutputFormat } from '@saasyoutube/shared';
 
 const execAsync = promisify(exec);
 
-// yt-dlp peut être appelé via python -m yt_dlp si pas dans le PATH
-const YTDLP = 'python -m yt_dlp';
+const YTDLP = process.platform === 'win32' ? 'python -m yt_dlp' : 'yt-dlp';
 
 export async function POST(req: NextRequest) {
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
