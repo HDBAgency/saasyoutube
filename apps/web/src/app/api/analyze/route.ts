@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const { stdout } = await execAsync(
-      `${YTDLP} --dump-json --no-playlist --no-warnings "${url}"`,
+      `${YTDLP} --dump-json --no-playlist --no-warnings --extractor-args "youtube:player_client=android,web" "${url}"`,
       { timeout: 30_000 },
     );
 

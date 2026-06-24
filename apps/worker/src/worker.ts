@@ -64,6 +64,7 @@ async function processConversion(job: Job) {
   const ytdlpArgs = [
     '--no-playlist',
     '--no-warnings',
+    '--extractor-args', 'youtube:player_client=android,web',
     '--match-filter', `duration <= ${MAX_DURATION}`,
     '--ffmpeg-location', 'ffmpeg',
     '-o', outputTemplate,
