@@ -1,6 +1,6 @@
-FROM node:20-bookworm-slim
+FROM node:20-alpine
 
-RUN apt-get update && apt-get install -y openssl curl --no-install-recommends && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache openssl curl
 RUN curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp && chmod +x /usr/local/bin/yt-dlp
 
 WORKDIR /app
@@ -15,6 +15,9 @@ RUN npm ci
 COPY . .
 
 RUN npx prisma generate --schema=packages/db/prisma/schema.prisma
+
+RUN cp /app/node_modules/.prisma/client/libquery_engine-linux-musl-openssl-3.0.x.so.node \
+       /app/node_modules/.prisma/client/libquery_engine-linux-musl.so.node
 
 RUN npm run build --workspace=apps/web
 
