@@ -1,8 +1,6 @@
-FROM node:20-alpine
+FROM node:20-alpine3.18
 
-RUN apk add --no-cache openssl curl
-RUN ln -s /usr/lib/libssl.so.3 /usr/lib/libssl.so.1.1 && \
-    ln -s /usr/lib/libcrypto.so.3 /usr/lib/libcrypto.so.1.1
+RUN apk add --no-cache openssl openssl1.1-compat curl
 RUN curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp && chmod +x /usr/local/bin/yt-dlp
 
 WORKDIR /app
