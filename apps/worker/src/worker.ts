@@ -1,5 +1,8 @@
 import 'dotenv/config';
 import { Worker, type Job } from 'bullmq';
+
+process.on('uncaughtException', (err) => { console.error('[worker] CRASH uncaughtException:', err); process.exit(1); });
+process.on('unhandledRejection', (reason) => { console.error('[worker] CRASH unhandledRejection:', reason); process.exit(1); });
 import { execFile, exec } from 'child_process';
 import { promisify } from 'util';
 import { mkdir, rm, readdir } from 'fs/promises';
