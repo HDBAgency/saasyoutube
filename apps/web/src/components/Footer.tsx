@@ -8,6 +8,7 @@ export function Footer() {
         <Link href="/privacy" className="hover:text-black transition-colors">Confidentialité</Link>
         <Link href="/dmca" className="hover:text-black transition-colors">DMCA</Link>
         <Link href="/faq" className="hover:text-black transition-colors">FAQ</Link>
+        <Link href="/contact" className="hover:text-black transition-colors">Contact</Link>
       </div>
       <p>© {new Date().getFullYear()} VideoSave — Usage personnel uniquement.</p>
     </footer>

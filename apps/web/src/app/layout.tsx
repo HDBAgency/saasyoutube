@@ -5,6 +5,7 @@ import { QueryProvider } from '@/providers/QueryProvider';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { AdBanner } from '@/components/AdBanner';
+import { CookieBanner } from '@/components/CookieBanner';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -55,6 +56,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
           </div>
           <Footer />
+          <CookieBanner />
         </QueryProvider>
       </body>
     </html>
