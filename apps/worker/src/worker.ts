@@ -67,22 +67,37 @@ async function processConversion(job: Job) {
 
   const outputTemplate = path.join(jobDir, 'output.%(ext)s');
   const isYoutube = /youtu\.?be/.test(url);
-  const extractorArgs: string[] = isYoutube
-    ? ['--extractor-args', 'youtube:player_client=tv_embedded,ios,android']
-    : [];
 
-  const ytdlpArgs = [
+  const buildArgs = (cookiesPath?: string) => [
     '--no-playlist',
     '--no-warnings',
-    ...extractorArgs,
+    ...(isYoutube ? ['--extractor-args', 'youtube:player_client=tv_embedded,ios,android'] : []),
+    ...(cookiesPath ? ['--cookies', cookiesPath] : []),
     '--ffmpeg-location', 'ffmpeg',
     '-o', outputTemplate,
     ...formatArgs,
     url,
   ];
 
-  const ytdlpCmd = `${YTDLP} ${ytdlpArgs.map(a => `"${a}"`).join(' ')}`;
-  await execAsync(ytdlpCmd, { timeout: 300_000 });
+  const runYtdlp = async (args: string[]) => {
+    const cmd = `${YTDLP} ${args.map(a => `"${a}"`).join(' ')}`;
+    return execAsync(cmd, { timeout: 300_000 });
+  };
+
+  try {
+    await runYtdlp(buildArgs());
+  } catch (err: any) {
+    const msg = err?.stderr ?? err?.message ?? '';
+    const needsAuth = msg.includes('Sign in') || msg.includes('bot') || msg.includes('cookies');
+    if (needsAuth && isYoutube && process.env.YOUTUBE_COOKIES_B64) {
+      const { writeFile } = await import('fs/promises');
+      const cookiePath = '/tmp/yt-cookies.txt';
+      await writeFile(cookiePath, Buffer.from(process.env.YOUTUBE_COOKIES_B64, 'base64').toString('utf8'));
+      await runYtdlp(buildArgs(cookiePath));
+    } else {
+      throw err;
+    }
+  }
 
   await updateProgress(jobId, 85);
   await job.updateProgress(85);
