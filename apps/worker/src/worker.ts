@@ -77,15 +77,10 @@ async function processConversion(job: Job) {
     cookiesArgs.push('--cookies', cookiePath);
   }
 
-  const extractorArgs: string[] = isYoutube
-    ? ['--extractor-args', 'youtube:player_client=tv_embedded,ios,android']
-    : [];
-
   const ytdlpArgs = [
     '--no-playlist',
     '--no-warnings',
     ...cookiesArgs,
-    ...extractorArgs,
     '--ffmpeg-location', 'ffmpeg',
     '-o', outputTemplate,
     ...formatArgs,
