@@ -141,4 +141,4 @@ const worker = new Worker(
 worker.on('completed', (job) => console.log(`[worker] Job ${job.id} terminé.`));
 worker.on('failed', (job, err) => console.error(`[worker] Job ${job?.id} échoué:`, err.message));
 
-console.log('[worker] Démarré — en attente de jobs...');
+console.log('[worker] v2 Démarré — en attente de jobs...');
