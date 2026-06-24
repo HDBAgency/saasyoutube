@@ -39,9 +39,9 @@ const EXPIRY_MINUTES = parseInt(process.env.DOWNLOAD_EXPIRY_MINUTES ?? '30');
 const FORMAT_CONFIG: Record<string, string[]> = {
   'mp3':      ['-x', '--audio-format', 'mp3', '--audio-quality', '128K'],
   'mp3-hd':   ['-x', '--audio-format', 'mp3', '--audio-quality', '0'],
-  'mp4-360p': ['-f', 'bestvideo[height<=360]+bestaudio/best[height<=360]/best', '--merge-output-format', 'mp4'],
-  'mp4-720p': ['-f', 'bestvideo[height<=720]+bestaudio/best[height<=720]/best', '--merge-output-format', 'mp4'],
-  'mp4-1080p':['-f', 'bestvideo[height<=1080]+bestaudio/best[height<=1080]/best', '--merge-output-format', 'mp4'],
+  'mp4-360p': ['-f', 'best[height<=360]/best', '--merge-output-format', 'mp4'],
+  'mp4-720p': ['-f', 'best[height<=720]/best', '--merge-output-format', 'mp4'],
+  'mp4-1080p':['-f', 'best[height<=1080]/best', '--merge-output-format', 'mp4'],
   'm4a':      ['-x', '--audio-format', 'm4a'],
   'wav':      ['-x', '--audio-format', 'wav'],
 };
@@ -66,7 +66,7 @@ async function processConversion(job: Job) {
   const outputTemplate = path.join(jobDir, 'output.%(ext)s');
   const isYoutube = /youtu\.?be/.test(url);
   const extractorArgs: string[] = isYoutube
-    ? ['--extractor-args', 'youtube:player_client=ios']
+    ? ['--extractor-args', 'youtube:player_client=tv_embedded,ios,android']
     : [];
 
   const ytdlpArgs = [
