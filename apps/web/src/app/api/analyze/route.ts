@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
   try {
     const cookiesArg = await getCookiesArg();
     const { stdout } = await execAsync(
-      `${YTDLP} --dump-json --no-playlist --no-warnings ${cookiesArg} "${url}"`,
+      `${YTDLP} --dump-json --no-playlist --no-warnings --no-check-formats ${cookiesArg} "${url}"`,
       { timeout: 30_000 },
     );
 
