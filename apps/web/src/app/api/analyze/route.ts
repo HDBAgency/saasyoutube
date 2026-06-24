@@ -6,8 +6,17 @@ import { rateLimiter } from '@/lib/rateLimit';
 import type { OutputFormat } from '@saasyoutube/shared';
 
 const execAsync = promisify(exec);
-
 const YTDLP = process.platform === 'win32' ? 'python -m yt_dlp' : 'yt-dlp';
+
+const FORMATS: OutputFormat[] = ['mp3', 'mp3-hd', 'm4a', 'wav', 'mp4-360p', 'mp4-720p', 'mp4-1080p'];
+
+async function analyzeYoutube(url: string) {
+  const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`;
+  const res = await fetch(oembedUrl);
+  if (!res.ok) throw new Error(`oEmbed ${res.status}`);
+  const data = await res.json() as { title: string; thumbnail_url: string };
+  return { title: data.title, thumbnail: data.thumbnail_url, duration: 0 };
+}
 
 async function getCookiesArg(): Promise<string> {
   const b64 = process.env.YOUTUBE_COOKIES_B64;
@@ -17,6 +26,16 @@ async function getCookiesArg(): Promise<string> {
   const cookiePath = '/tmp/yt-cookies.txt';
   await writeFile(cookiePath, cookies, 'utf8');
   return `--cookies ${cookiePath}`;
+}
+
+async function analyzeWithYtdlp(url: string) {
+  const cookiesArg = await getCookiesArg();
+  const { stdout } = await execAsync(
+    `${YTDLP} --print "%(title)s\n%(thumbnail)s\n%(duration)s" --no-playlist --no-warnings --no-check-formats ${cookiesArg} "${url}"`,
+    { timeout: 30_000 },
+  );
+  const [title, thumbnail, durationStr] = stdout.trim().split('\n');
+  return { title: title || 'Vidéo sans titre', thumbnail: thumbnail || '', duration: parseFloat(durationStr) || 0 };
 }
 
 export async function POST(req: NextRequest) {
@@ -40,23 +59,11 @@ export async function POST(req: NextRequest) {
   const platform = detectPlatform(url);
 
   try {
-    const cookiesArg = await getCookiesArg();
-    const { stdout } = await execAsync(
-      `${YTDLP} --dump-json --no-playlist --no-warnings --no-check-formats ${cookiesArg} "${url}"`,
-      { timeout: 30_000 },
-    );
+    const info = platform === 'youtube'
+      ? await analyzeYoutube(url)
+      : await analyzeWithYtdlp(url);
 
-    const info = JSON.parse(stdout);
-
-    const formats: OutputFormat[] = ['mp3', 'mp3-hd', 'm4a', 'wav', 'mp4-360p', 'mp4-720p', 'mp4-1080p'];
-
-    return NextResponse.json({
-      title: info.title ?? 'Vidéo sans titre',
-      thumbnail: info.thumbnail ?? '',
-      duration: info.duration ?? 0,
-      platform,
-      formats,
-    });
+    return NextResponse.json({ ...info, platform, formats: FORMATS });
   } catch (err) {
     console.error('[analyze]', err);
     return NextResponse.json(
