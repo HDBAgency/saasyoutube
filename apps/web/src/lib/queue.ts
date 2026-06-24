@@ -32,6 +32,7 @@ export async function addConversionJob(data: {
   jobId: string;
   url: string;
   format: string;
+  title?: string;
 }) {
   return getQueue().add('convert', data, {
     attempts: 3,
