@@ -29,14 +29,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="fr">
       <head>
-        {process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID &&
-          process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID !== 'ca-pub-XXXXXXXXXX' && (
-            <script
-              async
-              src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID}`}
-              crossOrigin="anonymous"
-            />
-          )}
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2915607826796031"
+          crossOrigin="anonymous"
+        />
       </head>
       <body className={`${inter.className} min-h-screen flex flex-col`}>
         <QueryProvider>
